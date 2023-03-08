@@ -33,6 +33,8 @@ namespace BitshopWebApi.Controllers
             this.connection.Close();
             return ds;
         }
+
+       
         public HttpResponseMessage GetCategoryById(int id)
         {
             DataSet ds = new DataSet();
