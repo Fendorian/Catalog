@@ -16,7 +16,7 @@ namespace BitshopWebApi.Models
 
         public string GetLogin(Login login)
         {
-            da = new SqlDataAdapter("SELECT * FROM Users WHERE Username = '"+login.Username +"' AND Password = '" + login.Password + "' ", con);
+            da = new SqlDataAdapter("SELECT * FROM [User] WHERE Username = '"+login.Username +"' AND Password = '" + login.Password + "' ", con);
             dt = new DataTable();
             da.Fill(dt);
             if (dt.Rows.Count > 0)

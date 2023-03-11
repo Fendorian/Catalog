@@ -15,7 +15,6 @@ namespace BitshopWebApi.Controllers
     [EnableCors(origins: "*", headers: "*", methods: "*")]
     public class ProductsController : ApiController
     {
-       
 
         private SqlConnection connection;
 
@@ -23,6 +22,8 @@ namespace BitshopWebApi.Controllers
         {
             this.connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]);
         }
+
+     
         // GET api/values
         public HttpResponseMessage GetAllItems()
         {

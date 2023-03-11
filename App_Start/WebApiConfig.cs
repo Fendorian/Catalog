@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Web.Http;
-
+using System.Web.Http.Cors;
 
 namespace BitshopWebApi
 {
@@ -11,8 +11,9 @@ namespace BitshopWebApi
     {
         public static void Register(HttpConfiguration config)
         {
-            config.EnableCors();
             // Web API configuration and services
+            var cors = new EnableCorsAttribute("*", "*", "*");
+            config.EnableCors(cors);
 
             // Web API routes
             config.MapHttpAttributeRoutes();
