@@ -23,8 +23,6 @@ namespace BitshopWebApi.Controllers
             this.connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]);
         }
 
-     
-        // GET api/values
         public HttpResponseMessage GetAllItems()
         {
             DataSet ds = new DataSet();
@@ -40,34 +38,8 @@ namespace BitshopWebApi.Controllers
             return Request.CreateResponse(HttpStatusCode.OK, ds);
         }
 
-        public HttpResponseMessage GetAllUsers()
-        {
-            DataSet ds = new DataSet();
-            SqlDataAdapter adapter = new SqlDataAdapter("spGetAllUsers", this.connection);
-            adapter.SelectCommand.CommandType = CommandType.StoredProcedure;
 
-            this.connection.Open();
 
-            adapter.Fill(ds);
-
-            this.connection.Close();
-
-            return Request.CreateResponse(HttpStatusCode.OK, ds);
-        }
-        public HttpResponseMessage GetAllCategories()
-        {
-            DataSet ds = new DataSet();
-            SqlDataAdapter adapter = new SqlDataAdapter("spGetAllItems", this.connection);
-            adapter.SelectCommand.CommandType = CommandType.StoredProcedure;
-
-            this.connection.Open();
-
-            adapter.Fill(ds);
-
-            this.connection.Close();
-
-            return Request.CreateResponse(HttpStatusCode.OK, ds);
-        }
         public HttpResponseMessage GetItemsByCategory(int id)
         {
             DataSet ds = new DataSet();
@@ -85,8 +57,35 @@ namespace BitshopWebApi.Controllers
 
             return Request.CreateResponse(HttpStatusCode.OK, ds);
         }
+        [HttpDelete]
+        public HttpResponseMessage DeleteItem(int id)
+        {
+            using (var connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]))
+            {
+                // Create the SQL command object
+                SqlCommand command = new SqlCommand("spDeleteItem", connection);
+                command.CommandType = CommandType.StoredProcedure;
 
-        
+                // Add the parameter to the command
+                command.Parameters.Add("@ItemID", SqlDbType.Int).Value = id;
+
+                // Open the connection
+                connection.Open();
+
+                // Execute the command
+                int rowsAffected = command.ExecuteNonQuery();
+
+                // Check if any rows were deleted
+                if (rowsAffected == 0)
+                {
+                    return Request.CreateResponse(HttpStatusCode.NotFound);
+                }
+
+                // Return a success response
+                return Request.CreateResponse(HttpStatusCode.OK);
+            }
+        }
+
 
 
         public HttpResponseMessage GetItemById(int id)
@@ -107,51 +106,31 @@ namespace BitshopWebApi.Controllers
             return Request.CreateResponse(HttpStatusCode.OK, ds);
         }
 
-        // POST api/values
-        //public void Post([FromBody] string value)
-        //{
-        //}
         [HttpPost]
-        [Route("api/Product/CreateItem")]
         public IHttpActionResult CreateItem(Item item)
         {
             using (var connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]))
             {
-                
-
-                using (var command = new SqlCommand("spPostItem", this.connection))
+                using (var command = new SqlCommand("spCreateItem", connection))
                 {
+                    connection.Open();
+
                     command.CommandType = CommandType.StoredProcedure;
 
-                    // Add the parameters for the stored procedure
-                    command.Parameters.Add("@ID", SqlDbType.Int).Value = item.ItemID;
                     command.Parameters.Add("@Name", SqlDbType.NVarChar, 50).Value = item.Name;
-                    command.Parameters.Add("@Abstract", SqlDbType.NVarChar, 100).Value = item.Abstract;
-                    command.Parameters.Add("@Desc", SqlDbType.NVarChar, 100).Value = item.Desc;
+                    command.Parameters.Add("@Abstract", SqlDbType.NVarChar, 255).Value = item.Abstract;
+                    command.Parameters.Add("@Desc", SqlDbType.NVarChar, -1).Value = item.Desc;
                     command.Parameters.Add("@Price", SqlDbType.Int).Value = item.Price;
-                    command.Parameters.Add("@CategoryId", SqlDbType.Char, 10).Value = item.CategoryID;
-                    command.Parameters.Add("@ImageUrl", SqlDbType.NVarChar, 100).Value = item.ImageUrl;
+                    command.Parameters.Add("@ImageUrl", SqlDbType.NVarChar, 255).Value = item.ImageUrl;
+                    command.Parameters.Add("@CategoryID", SqlDbType.Int).Value = item.CategoryID;
 
-                    // Execute the stored procedure
-                    this.connection.Open();
+                   
                     command.ExecuteNonQuery();
-                    this.connection.Close();
+                    
                 }
+                connection.Close();
             }
-
-            // Return a success status code
-            return Ok();
-            
-        }
-
-        // PUT api/values/5
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/values/5
-        public void Delete(int id)
-        {
+            return Ok(item);
         }
     }
-}
+    }

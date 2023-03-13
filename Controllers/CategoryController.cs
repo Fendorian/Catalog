@@ -22,19 +22,22 @@ namespace BitshopWebApi.Controllers
         {
             this.connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]);
         }
-        // GET: Category
-        public DataSet GetAllCategories()
+        public HttpResponseMessage GetAllCategories()
         {
             DataSet ds = new DataSet();
             SqlDataAdapter adapter = new SqlDataAdapter("spGetAllCategories", this.connection);
             adapter.SelectCommand.CommandType = CommandType.StoredProcedure;
+
             this.connection.Open();
+
             adapter.Fill(ds);
+
             this.connection.Close();
-            return ds;
+
+            return Request.CreateResponse(HttpStatusCode.OK, ds);
         }
 
-       
+
         public HttpResponseMessage GetCategoryById(int id)
         {
             DataSet ds = new DataSet();

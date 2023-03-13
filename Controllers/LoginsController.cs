@@ -27,7 +27,20 @@ namespace Catalog.Controllers
         {
             this.connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]);
         }
+        public HttpResponseMessage GetAllUsers()
+        {
+            DataSet ds = new DataSet();
+            SqlDataAdapter adapter = new SqlDataAdapter("spGetAllUsers", this.connection);
+            adapter.SelectCommand.CommandType = CommandType.StoredProcedure;
 
+            this.connection.Open();
+
+            adapter.Fill(ds);
+
+            this.connection.Close();
+
+            return Request.CreateResponse(HttpStatusCode.OK, ds);
+        }
         [System.Web.Http.HttpPost]
         public IHttpActionResult CreateUser(Login login)
         {

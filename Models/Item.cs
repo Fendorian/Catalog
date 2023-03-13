@@ -12,7 +12,7 @@ namespace BitshopWebApi.Models
         public string Abstract { get; set; }
         public string Desc { get; set; }
         public int Price { get; set; }
-        public string CategoryID { get; set; }
+        public int CategoryID { get; set; }
         public string ImageUrl { get; set; }
     }
 }
