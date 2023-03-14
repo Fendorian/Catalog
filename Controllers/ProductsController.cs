@@ -38,7 +38,23 @@ namespace BitshopWebApi.Controllers
             return Request.CreateResponse(HttpStatusCode.OK, ds);
         }
 
+        [HttpGet]
+        public IHttpActionResult GetPagedProducts(int pageNumber, int pageSize)
+        {
+            using (SqlConnection connection = new SqlConnection(ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString))
+            {
+                SqlCommand command = new SqlCommand("spPagination", this.connection);
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("@pageNumber", pageNumber);
+                command.Parameters.AddWithValue("@pageSize", pageSize);
 
+                SqlDataAdapter adapter = new SqlDataAdapter(command);
+                DataTable table = new DataTable();
+                adapter.Fill(table);
+
+                return Ok(table);
+            }
+        }
 
         public HttpResponseMessage GetItemsByCategory(int id)
         {
