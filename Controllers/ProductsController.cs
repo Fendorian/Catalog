@@ -91,7 +91,7 @@ namespace BitshopWebApi.Controllers
         public HttpResponseMessage GetItemById(int id)
         {
             DataSet ds = new DataSet();
-            SqlDataAdapter adapter = new SqlDataAdapter("spGetItem", this.connection);
+            SqlDataAdapter adapter = new SqlDataAdapter("spGetItemById", this.connection);
             adapter.SelectCommand.CommandType = CommandType.StoredProcedure;
             adapter.SelectCommand.Parameters.Add("@ItemID", SqlDbType.Int);
             adapter.SelectCommand.Parameters[0].Value = id;
@@ -119,7 +119,7 @@ namespace BitshopWebApi.Controllers
 
                     command.Parameters.Add("@Name", SqlDbType.NVarChar, 50).Value = item.Name;
                     command.Parameters.Add("@Abstract", SqlDbType.NVarChar, 255).Value = item.Abstract;
-                    command.Parameters.Add("@Desc", SqlDbType.NVarChar, -1).Value = item.Desc;
+                    command.Parameters.Add("@Desc", SqlDbType.NVarChar, 255).Value = item.Desc;
                     command.Parameters.Add("@Price", SqlDbType.Int).Value = item.Price;
                     command.Parameters.Add("@ImageUrl", SqlDbType.NVarChar, 255).Value = item.ImageUrl;
                     command.Parameters.Add("@CategoryID", SqlDbType.Int).Value = item.CategoryID;
