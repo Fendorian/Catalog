@@ -63,33 +63,90 @@ namespace Catalog.Controllers
 
             return Ok(login);
         }
+        private static string GenerateToken()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            var random = new Random();
+            var token = new string(
+                Enumerable.Repeat(chars, 32)
+                          .Select(s => s[random.Next(s.Length)])
+                          .ToArray());
+            return token;
+        }
         //server=FENDORIAN\\SQLEXPRESS; Integrated Security = True; database=Catalog;
         [System.Web.Http.HttpPost]
-        public IHttpActionResult CheckLogin([FromBody] Login login)
+        public IHttpActionResult Login(Login login)
         {
-            //string connectionString = ConfigurationManager.AppSettings["ConnectionString"];
-
-            using (var connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]))
+            using (SqlConnection connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]))
             {
-                connection.Open();
+                using (SqlCommand command = new SqlCommand("spCheckUser2", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@username", login.Username);
+                    command.Parameters.AddWithValue("@password", login.Password);
 
-                SqlCommand command = new SqlCommand("spCheckValidation", connection);
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-                command.Parameters.AddWithValue("@username", login.Username);
-                command.Parameters.AddWithValue("@password", login.Password);
-                SqlParameter resultParameter = new SqlParameter("@p_result", System.Data.SqlDbType.Int);
-                resultParameter.Direction = System.Data.ParameterDirection.Output;
-                command.Parameters.Add(resultParameter);
+                    connection.Open();
 
-                command.ExecuteNonQuery();
+                    int authenticated = (int)command.ExecuteScalar();
 
-                int result = (int)resultParameter.Value;
+                    if (authenticated == 1)
+                    {
+                        // User is authenticated
 
-                if (result == 1)
-                    return Ok("Login Success");
-                else
-                    return BadRequest("Login Failed");
+                        // Generate a new token
+                        string token = GenerateToken();
+
+                        // Update the User table with the token
+                        using (SqlCommand updateCommand = new SqlCommand("UPDATE [User] SET token = @token WHERE username = @username", connection))
+                        {
+                            updateCommand.Parameters.AddWithValue("@token", token);
+                            updateCommand.Parameters.AddWithValue("@username", login.Username);
+                            updateCommand.ExecuteNonQuery();
+                        }
+
+                        // Return the token to the client
+                        return Ok(token);
+                    }
+                    else
+                    {
+                        // User is not authenticated
+                        return Unauthorized();
+                    }
+                }
             }
         }
+        [System.Web.Http.HttpPost]
+        public IHttpActionResult CheckToken(Login login)
+        {
+            using (SqlConnection connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]))
+            {
+                using (SqlCommand command = new SqlCommand("spCheckUserToken", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@username", login.Username);
+                    command.Parameters.AddWithValue("@token", login.Token);
+
+                    connection.Open();
+
+                    int authenticated = (int)command.ExecuteScalar();
+
+                    if (authenticated == 1)
+                    {
+                        // Token is valid
+                        return Ok();
+                    }
+                    else
+                    {
+                        // Token is not valid
+                        return Unauthorized();
+                    }
+                }
+            }
+        }
+
+
+
+
+
     }
-    }
+}

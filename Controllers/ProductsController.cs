@@ -41,7 +41,7 @@ namespace BitshopWebApi.Controllers
         [HttpGet]
         public IHttpActionResult GetPagedProducts(int pageNumber, int pageSize)
         {
-            using (SqlConnection connection = new SqlConnection(ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString))
+            using (SqlConnection connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]))
             {
                 SqlCommand command = new SqlCommand("spPagination", this.connection);
                 command.CommandType = CommandType.StoredProcedure;
@@ -103,7 +103,7 @@ namespace BitshopWebApi.Controllers
         }
 
 
-
+        [HttpGet]
         public HttpResponseMessage GetItemById(int id)
         {
             DataSet ds = new DataSet();
