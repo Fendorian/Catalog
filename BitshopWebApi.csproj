@@ -195,6 +195,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\BAL.cs" />
+    <Compile Include="Models\Category.cs" />
     <Compile Include="Models\DAL.cs" />
     <Compile Include="Models\Item.cs" />
     <Compile Include="Models\Login.cs" />

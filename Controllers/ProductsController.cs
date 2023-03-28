@@ -104,13 +104,13 @@ namespace BitshopWebApi.Controllers
 
 
         [HttpGet]
-        public HttpResponseMessage GetItemById(int id)
+        public HttpResponseMessage GetItemByCategory(int categoryId)
         {
             DataSet ds = new DataSet();
-            SqlDataAdapter adapter = new SqlDataAdapter("spGetItemById", this.connection);
+            SqlDataAdapter adapter = new SqlDataAdapter("spGetItemByCategory", this.connection);
             adapter.SelectCommand.CommandType = CommandType.StoredProcedure;
-            adapter.SelectCommand.Parameters.Add("@ItemID", SqlDbType.Int);
-            adapter.SelectCommand.Parameters[0].Value = id;
+            adapter.SelectCommand.Parameters.Add("@CategoryID", SqlDbType.Int);
+            adapter.SelectCommand.Parameters[0].Value = categoryId;
 
             this.connection.Open();
 
@@ -121,7 +121,6 @@ namespace BitshopWebApi.Controllers
 
             return Request.CreateResponse(HttpStatusCode.OK, ds);
         }
-
         [HttpPost]
         public IHttpActionResult CreateItem(Item item)
         {
@@ -148,5 +147,7 @@ namespace BitshopWebApi.Controllers
             }
             return Ok(item);
         }
+
+
     }
     }

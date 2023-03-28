@@ -1,4 +1,6 @@
-﻿using System;
+﻿using BitshopWebApi.Models;
+using Catalog.Models;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -55,6 +57,29 @@ namespace BitshopWebApi.Controllers
 
             return Request.CreateResponse(HttpStatusCode.OK, ds);
         }
+        [System.Web.Http.HttpPost]
+        public IHttpActionResult CreateCategory(Category category)
+        {
+            using (var connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]))
+            {
+                using (var command = new SqlCommand("spCreateCategory", connection))
+                {
+                    connection.Open();
+
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    command.Parameters.Add("@CategoryName", SqlDbType.NVarChar, 50).Value = category.CategoryName;
+                    
+
+
+                    command.ExecuteNonQuery();
+
+                }
+                connection.Close();
+            }
+            return Ok(category);
+        }
+
 
 
     }
