@@ -39,14 +39,51 @@ namespace BitshopWebApi.Controllers
         }
 
         [HttpGet]
-        public IHttpActionResult GetPagedProducts(int pageNumber, int pageSize)
+        public HttpResponseMessage GetPagedProducts(int pageNumber, int pageSize)
         {
+            DataSet ds = new DataSet();
+            SqlDataAdapter adapter = new SqlDataAdapter("spPagination", this.connection);
+            adapter.SelectCommand.CommandType = CommandType.StoredProcedure;
+            adapter.SelectCommand.Parameters.Add("@pageNumber", SqlDbType.Int);
+            adapter.SelectCommand.Parameters[0].Value = pageNumber;
+            adapter.SelectCommand.Parameters.Add("@pageSize", SqlDbType.Int);
+            adapter.SelectCommand.Parameters[1].Value = pageSize;
+
+            this.connection.Open();
+
+            adapter.Fill(ds);
+
+            this.connection.Close();
+
+                return Request.CreateResponse(HttpStatusCode.OK, ds);
+        }
+        //[HttpGet]
+        //public IHttpActionResult GetPagedProducts(int pageNumber, int pageSize)
+        //{
+        //    using (SqlConnection connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]))
+        //    {
+        //        SqlCommand command = new SqlCommand("spPagination", this.connection);
+        //        command.CommandType = CommandType.StoredProcedure;
+        //        command.Parameters.AddWithValue("@pageNumber", pageNumber);
+        //        command.Parameters.AddWithValue("@pageSize", pageSize);
+
+        //        SqlDataAdapter adapter = new SqlDataAdapter(command);
+        //        DataTable table = new DataTable();
+        //        adapter.Fill(table);
+
+        //        return Ok(table);
+        //    }
+        //}
+        [HttpGet]
+        public IHttpActionResult GetItemsByCategory(int id)
+        {
+            DataSet ds = new DataSet();
             using (SqlConnection connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]))
             {
-                SqlCommand command = new SqlCommand("spPagination", this.connection);
+                SqlCommand command = new SqlCommand("spGetItemsByCategory", this.connection);
                 command.CommandType = CommandType.StoredProcedure;
-                command.Parameters.AddWithValue("@pageNumber", pageNumber);
-                command.Parameters.AddWithValue("@pageSize", pageSize);
+                command.Parameters.AddWithValue("@CategoryID", SqlDbType.Int);
+                command.Parameters[0].Value = id;
 
                 SqlDataAdapter adapter = new SqlDataAdapter(command);
                 DataTable table = new DataTable();
@@ -54,14 +91,16 @@ namespace BitshopWebApi.Controllers
 
                 return Ok(table);
             }
+
+            
         }
 
-        public HttpResponseMessage GetItemsByCategory(int id)
+        public HttpResponseMessage GetItemById(int id)
         {
             DataSet ds = new DataSet();
-            SqlDataAdapter adapter = new SqlDataAdapter("spGetItemsByCategory", this.connection);
+            SqlDataAdapter adapter = new SqlDataAdapter("spGetItemById", this.connection);
             adapter.SelectCommand.CommandType = CommandType.StoredProcedure;
-            adapter.SelectCommand.Parameters.Add("@CategoryID", SqlDbType.Int);
+            adapter.SelectCommand.Parameters.Add("@ItemID", SqlDbType.Int);
             adapter.SelectCommand.Parameters[0].Value = id;
 
             this.connection.Open();
@@ -107,7 +146,7 @@ namespace BitshopWebApi.Controllers
         public HttpResponseMessage GetItemByCategory(int categoryId)
         {
             DataSet ds = new DataSet();
-            SqlDataAdapter adapter = new SqlDataAdapter("spGetItemByCategory", this.connection);
+            SqlDataAdapter adapter = new SqlDataAdapter("spGetItemsByCategory", this.connection);
             adapter.SelectCommand.CommandType = CommandType.StoredProcedure;
             adapter.SelectCommand.Parameters.Add("@CategoryID", SqlDbType.Int);
             adapter.SelectCommand.Parameters[0].Value = categoryId;
