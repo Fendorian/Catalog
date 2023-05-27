@@ -9,6 +9,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Mail;
 using System.Web;
 using System.Web.Http;
 using System.Web.Http.Cors;
@@ -156,6 +157,104 @@ namespace Catalog.Controllers
                     }
                 }
             }
+        }
+
+        [System.Web.Http.HttpPost]
+        public IHttpActionResult ForgotPassword(Login login)
+        {
+            using (SqlConnection connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]))
+            {
+                using (SqlCommand command = new SqlCommand("spCheckUserEmail", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@Email", login.Email);
+
+                    connection.Open();
+
+                    int exists = (int)command.ExecuteScalar();
+
+                    if (exists == 1)
+                    {
+                        // Email exists in the user table, proceed with forgot password process.
+
+                        // Generate a unique token.
+                        var token = Guid.NewGuid().ToString();
+
+                        // Save the token in your database tied to the user. 
+                        SaveResetToken(login, token);
+
+                        // Send an email to the user with a URL that includes the unique token.
+                        // This is outside the scope of this function and depends on your SMTP configuration.
+
+                        return Ok();
+                    }
+                    else
+                    {
+                        // Email does not exist in the user table.
+                        return NotFound();
+                    }
+                }
+            }
+        }
+
+
+        public IHttpActionResult SaveResetToken(Login login, string resetToken)
+        {
+            using (SqlConnection connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]))
+            {
+                using (SqlCommand command = new SqlCommand("spSaveUserResetToken", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@Email", login.Email);
+                    command.Parameters.AddWithValue("@ResetToken", resetToken);
+
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                }
+            }
+
+            // Consider what you want to return here. It could be an Ok() status,
+            // or you might want to return a more specific message or status.
+            return Ok();
+        }
+
+        private void SendResetEmail(string email, string resetToken)
+        {
+            // The email address that this email will be sent from
+            var fromAddress = new MailAddress("your-email@example.com", "Your Name");
+
+            // The email address that this email will be sent to
+            var toAddress = new MailAddress(email);
+
+            // The password for the email address that this email will be sent from
+            const string fromPassword = "your-email-password";
+
+            // The subject of the email
+            const string subject = "Password Reset Request";
+
+            // The body of the email
+            string body = $"Please reset your password by clicking here: https://your-app-url.com/reset-password?token={resetToken}";
+
+            // SMTP server configuration
+            var smtp = new SmtpClient
+            {
+                Host = "smtp.example.com", // replace with your SMTP server
+                Port = 587, // replace with your SMTP port
+                EnableSsl = true,
+                DeliveryMethod = SmtpDeliveryMethod.Network,
+                UseDefaultCredentials = false,
+                Credentials = new NetworkCredential(fromAddress.Address, fromPassword)
+            };
+
+            // Create the email
+            using (var message = new MailMessage(fromAddress, toAddress)
+            {
+                Subject = subject,
+                Body = body
+            })
+
+                // Send the email
+                smtp.Send(message);
         }
 
 

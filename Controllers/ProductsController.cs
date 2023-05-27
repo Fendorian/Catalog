@@ -165,7 +165,7 @@ namespace BitshopWebApi.Controllers
         {
             using (var connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]))
             {
-                using (var command = new SqlCommand("spCreateItem", connection))
+                using (var command = new SqlCommand("spCreateItem2", connection))
                 {
                     connection.Open();
 
@@ -187,6 +187,57 @@ namespace BitshopWebApi.Controllers
             }
             return Ok(item);
         }
+        //[HttpPost]
+        //public IHttpActionResult CreateItem2(Item item)
+        //{
+        //    using (var connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]))
+        //    {
+        //        using (var command = new SqlCommand("spCreateItem", connection))
+        //        {
+        //            connection.Open();
+
+        //            command.CommandType = CommandType.StoredProcedure;
+
+        //            command.Parameters.Add("@Name", SqlDbType.NVarChar, 50).Value = item.Name;
+        //            command.Parameters.Add("@Abstract", SqlDbType.NVarChar, 255).Value = item.Abstract;
+        //            command.Parameters.Add("@Desc", SqlDbType.NVarChar, 255).Value = item.Desc;
+        //            command.Parameters.Add("@Price", SqlDbType.Int).Value = item.Price;
+        //            command.Parameters.Add("@ImageUrl", SqlDbType.NVarChar, 255).Value = item.ImageUrl;
+        //            command.Parameters.Add("@CategoryID", SqlDbType.Int).Value = item.CategoryID;
+
+        //            // Prepare the SpecIDs table
+        //            var specIDsTable = new DataTable();
+        //            specIDsTable.Columns.Add("SpecID", typeof(int));
+        //            foreach (var spec in item.Specs)
+        //            {
+        //                specIDsTable.Rows.Add(spec.SpecID);
+        //            }
+
+        //            // Prepare the Values table
+        //            var valuesTable = new DataTable();
+        //            valuesTable.Columns.Add("Value", typeof(string));
+        //            foreach (var spec in item.Specs)
+        //            {
+        //                valuesTable.Rows.Add(spec.Value);
+        //            }
+
+        //            // Add the SpecIDs and Values tables as parameters
+        //            var specIDsParameter = command.Parameters.AddWithValue("@SpecIDs", specIDsTable);
+        //            specIDsParameter.SqlDbType = SqlDbType.Structured;
+        //            specIDsParameter.TypeName = "dbo.SpecIDs";
+
+        //            var valuesParameter = command.Parameters.AddWithValue("@Values", valuesTable);
+        //            valuesParameter.SqlDbType = SqlDbType.Structured;
+        //            valuesParameter.TypeName = "dbo.[Values]";
+
+        //            command.ExecuteNonQuery();
+
+        //        }
+        //        connection.Close();
+        //    }
+        //    return Ok(item);
+        //}
+
 
         [HttpGet]
         public IHttpActionResult GetTotalItemsCount()
@@ -204,8 +255,45 @@ namespace BitshopWebApi.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("api/Products/GetSpecForCategory/{categoryId}")]
+        public IHttpActionResult GetSpecForCategory(int categoryId)
+        {
+            List<SpecForCategory> specs = new List<SpecForCategory>();
 
+            using (var connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]))
+            {
+                using (var command = new SqlCommand("spGetSpecialCategoriesByCategory", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
 
+                    // Set CategoryID parameter
+                    command.Parameters.Add("@CategoryID", SqlDbType.Int).Value = categoryId;
+
+                    connection.Open();
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            specs.Add(new SpecForCategory()
+                            {
+                                CategoryName = reader["CategoryName"].ToString(),
+                                SpecCatID = Convert.ToInt32(reader["SpecCatID"]),
+                                SpecialCategoryName = reader["SpecialCategoryName"].ToString()
+                            });
+
+                        }
+                    }
+                }
+            }
+            connection.Close();
+            if (specs.Count > 0)
+                
+                return Ok(specs);
+
+            return NotFound();
+        }
 
     }
 }
