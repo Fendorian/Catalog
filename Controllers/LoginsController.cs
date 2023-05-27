@@ -49,6 +49,20 @@ namespace Catalog.Controllers
             {
                 connection.Open();
 
+                using (var checkCommand = new SqlCommand("spCheckUsername", connection))
+                {
+                    checkCommand.CommandType = CommandType.StoredProcedure;
+                    checkCommand.Parameters.AddWithValue("@username", login.Username);
+
+                    int count = Convert.ToInt32(checkCommand.ExecuteScalar());
+
+                    if (count > 0)
+                    {
+                        // Username already exists
+                        return BadRequest("Username already exists");
+                    }
+                }
+
                 using (var command = new SqlCommand("spCreateUser", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
@@ -105,7 +119,7 @@ namespace Catalog.Controllers
                         }
 
                         // Return the token to the client
-                        return Ok(token);
+                        return Ok(new { token = token });
                     }
                     else
                     {

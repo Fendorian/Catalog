@@ -179,6 +179,7 @@ namespace BitshopWebApi.Controllers
                     command.Parameters.Add("@CategoryID", SqlDbType.Int).Value = item.CategoryID;
 
                    
+                    
                     command.ExecuteNonQuery();
                     
                 }
@@ -187,6 +188,24 @@ namespace BitshopWebApi.Controllers
             return Ok(item);
         }
 
+        [HttpGet]
+        public IHttpActionResult GetTotalItemsCount()
+        {
+            using (SqlConnection connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]))
+            {
+                SqlCommand command = new SqlCommand("spCountItems", connection);
+                command.CommandType = CommandType.StoredProcedure;
+
+                connection.Open();
+                int totalItemsCount = (int)command.ExecuteScalar();
+                connection.Close();
+
+                return Ok(totalItemsCount);
+            }
+        }
+
+
+
 
     }
-    }
+}
