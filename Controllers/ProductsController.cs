@@ -57,23 +57,6 @@ namespace BitshopWebApi.Controllers
 
                 return Request.CreateResponse(HttpStatusCode.OK, ds);
         }
-        //[HttpGet]
-        //public IHttpActionResult GetPagedProducts(int pageNumber, int pageSize)
-        //{
-        //    using (SqlConnection connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]))
-        //    {
-        //        SqlCommand command = new SqlCommand("spPagination", this.connection);
-        //        command.CommandType = CommandType.StoredProcedure;
-        //        command.Parameters.AddWithValue("@pageNumber", pageNumber);
-        //        command.Parameters.AddWithValue("@pageSize", pageSize);
-
-        //        SqlDataAdapter adapter = new SqlDataAdapter(command);
-        //        DataTable table = new DataTable();
-        //        adapter.Fill(table);
-
-        //        return Ok(table);
-        //    }
-        //}
         [HttpGet]
         public IHttpActionResult GetItemsByCategory(int id)
         {
@@ -187,56 +170,46 @@ namespace BitshopWebApi.Controllers
             }
             return Ok(item);
         }
-        //[HttpPost]
-        //public IHttpActionResult CreateItem2(Item item)
-        //{
-        //    using (var connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]))
-        //    {
-        //        using (var command = new SqlCommand("spCreateItem", connection))
-        //        {
-        //            connection.Open();
+        [HttpPost]
+        public IHttpActionResult CreateItem2(Item item)
+        {
+            using (var connection = new SqlConnection(ConfigurationManager.AppSettings["ConnectionString"]))
+            {
+                using (var command = new SqlCommand("spCreateItem", connection))
+                {
+                    connection.Open();
 
-        //            command.CommandType = CommandType.StoredProcedure;
+                    command.CommandType = CommandType.StoredProcedure;
 
-        //            command.Parameters.Add("@Name", SqlDbType.NVarChar, 50).Value = item.Name;
-        //            command.Parameters.Add("@Abstract", SqlDbType.NVarChar, 255).Value = item.Abstract;
-        //            command.Parameters.Add("@Desc", SqlDbType.NVarChar, 255).Value = item.Desc;
-        //            command.Parameters.Add("@Price", SqlDbType.Int).Value = item.Price;
-        //            command.Parameters.Add("@ImageUrl", SqlDbType.NVarChar, 255).Value = item.ImageUrl;
-        //            command.Parameters.Add("@CategoryID", SqlDbType.Int).Value = item.CategoryID;
+                    command.Parameters.Add("@Name", SqlDbType.NVarChar, 50).Value = item.Name;
+                    command.Parameters.Add("@Abstract", SqlDbType.NVarChar, 255).Value = item.Abstract;
+                    command.Parameters.Add("@Desc", SqlDbType.NVarChar, -1).Value = item.Desc; // Use -1 for nvarchar(MAX)
+                    command.Parameters.Add("@Price", SqlDbType.Int).Value = item.Price;
+                    command.Parameters.Add("@ImageUrl", SqlDbType.NVarChar, 255).Value = item.ImageUrl;
+                    command.Parameters.Add("@CategoryID", SqlDbType.Int).Value = item.CategoryID;
 
-        //            // Prepare the SpecIDs table
-        //            var specIDsTable = new DataTable();
-        //            specIDsTable.Columns.Add("SpecID", typeof(int));
-        //            foreach (var spec in item.Specs)
-        //            {
-        //                specIDsTable.Rows.Add(spec.SpecID);
-        //            }
+                    // Prepare the Specs table
+                    var specsTable = new DataTable();
+                    specsTable.Columns.Add("SpecID", typeof(int));
+                    specsTable.Columns.Add("Value", typeof(string));
+                    foreach (var spec in item.Specs)
+                    {
+                        specsTable.Rows.Add(spec.SpecID, spec.Value);
+                    }
 
-        //            // Prepare the Values table
-        //            var valuesTable = new DataTable();
-        //            valuesTable.Columns.Add("Value", typeof(string));
-        //            foreach (var spec in item.Specs)
-        //            {
-        //                valuesTable.Rows.Add(spec.Value);
-        //            }
+                    // Add the Specs table as a parameter
+                    var specsParameter = command.Parameters.AddWithValue("@Specs", specsTable);
+                    specsParameter.SqlDbType = SqlDbType.Structured;
+                    specsParameter.TypeName = "dbo.ItemSpecs";
 
-        //            // Add the SpecIDs and Values tables as parameters
-        //            var specIDsParameter = command.Parameters.AddWithValue("@SpecIDs", specIDsTable);
-        //            specIDsParameter.SqlDbType = SqlDbType.Structured;
-        //            specIDsParameter.TypeName = "dbo.SpecIDs";
+                    command.ExecuteNonQuery();
 
-        //            var valuesParameter = command.Parameters.AddWithValue("@Values", valuesTable);
-        //            valuesParameter.SqlDbType = SqlDbType.Structured;
-        //            valuesParameter.TypeName = "dbo.[Values]";
+                }
+                connection.Close();
+            }
+            return Ok(item);
+        }
 
-        //            command.ExecuteNonQuery();
-
-        //        }
-        //        connection.Close();
-        //    }
-        //    return Ok(item);
-        //}
 
 
         [HttpGet]
